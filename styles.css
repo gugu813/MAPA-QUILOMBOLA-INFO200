@@ -1,6 +1,0 @@
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-body, html { height: 100%; }
-.container { display: flex; height: 100vh; }
-.sidebar { width: 320px; background: #f8f9fa; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 1000; }
-.info-panel { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-top: 15px;}
-#map { flex-grow: 1; }
