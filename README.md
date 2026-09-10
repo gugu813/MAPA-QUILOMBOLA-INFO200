@@ -142,7 +142,7 @@ A proposta é apoiar a identificação, documentação e preservação de territ
 - Maria do Carmo Barboza
 - Igor Cruz
 - Cauã Pereira
-- 
+
 ## Licença
 
 Este projeto está em desenvolvimento e pode ser ajustado conforme a necessidade da equipe e dos dados envolvidos.
