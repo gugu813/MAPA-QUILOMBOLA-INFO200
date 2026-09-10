@@ -119,7 +119,7 @@
         <!-- ABA 2: CADASTRO -->
         <div id="tab-cadastrar" class="tab-content">
             <div class="tip-box">
-                👉 <b>Dica:</b> Clique direto em qualquer local do mapa para preencher a Latitude e Longitude automaticamente!
+                👉 <b>Dica:</b> Clique direto em qualquer local do mapa para colocar um pino e preencher as coordenadas automaticamente!
             </div>
             <form id="form-comunidade">
                 <div class="form-group">
@@ -236,23 +236,46 @@
 
         let markersLayer = L.layerGroup().addTo(map);
         let dadosComunidades = [];
+        let tempMarker = null; // Guardará o pino temporário do clique no mapa
 
         function switchTab(tabId, event) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            event.target.classList.add('active');
+            if(event && event.target) {
+                event.target.classList.add('active');
+            }
             document.getElementById(tabId).classList.add('active');
         }
 
+        // EVENTO AO CLICAR EM QUALQUER LUGAR DO MAPA
         map.on('click', (e) => {
             const { lat, lng } = e.latlng;
+            
+            // Preenche os campos do formulário
             document.getElementById('latitude').value = lat.toFixed(6);
             document.getElementById('longitude').value = lng.toFixed(6);
+
+            // Se o pino temporário já existir, apenas move para o novo local
+            if (tempMarker) {
+                tempMarker.setLatLng([lat, lng]);
+            } else {
+                // Se não existir, cria o novo pino vermelho
+                tempMarker = L.marker([lat, lng], { icon: redPinIcon }).addTo(map);
+            }
+
+            // Exibe mensagem informativa sobre a seleção
+            tempMarker.bindPopup(`
+                <div style="font-family: sans-serif; font-size: 0.82rem;">
+                    <b>📍 Novo local selecionado!</b><br>
+                    Preencha os dados no formulário ao lado para salvar.
+                </div>
+            `).openPopup();
+
+            // Muda para a aba de Cadastrar
             document.querySelectorAll('.tab-btn')[1].click();
         });
 
         function carregarComunidades() {
-            // Chave v3 garante limpeza de dados incorretos da memória do navegador
             const backup = localStorage.getItem('quilombos_v3'); 
             dadosComunidades = backup ? JSON.parse(backup) : COMUNIDADES_REAIS;
             
@@ -311,7 +334,6 @@
                 contagemSituacao[c.situacao_palmares] = (contagemSituacao[c.situacao_palmares] || 0) + 1;
             });
 
-            // Enquadra o zoom automaticamente para exibir TODOS os pinos cadastrados/filtrados
             if (bounds.isValid() && (ajustarVisaoGeral || lista.length > 1)) {
                 map.fitBounds(bounds, { padding: [40, 40] });
             }
@@ -353,6 +375,15 @@
                     map.setView([lat, lon], 12);
                     document.getElementById('latitude').value = lat.toFixed(6);
                     document.getElementById('longitude').value = lon.toFixed(6);
+
+                    // Coloca o pino na busca por GPS também
+                    if (tempMarker) {
+                        tempMarker.setLatLng([lat, lon]);
+                    } else {
+                        tempMarker = L.marker([lat, lon], { icon: redPinIcon }).addTo(map);
+                    }
+                    tempMarker.bindPopup(`<b>📍 ${query}</b><br>Localização aproximada via GPS.`).openPopup();
+
                 } else {
                     alert('Localização não encontrada. Clique no mapa para marcar manualmente!');
                 }
@@ -372,6 +403,12 @@
                 longitude: parseFloat(document.getElementById('longitude').value),
                 situacao_palmares: document.getElementById('situacao').value
             };
+
+            // Remove o pino temporário da tela já que o definitivo será criado
+            if (tempMarker) {
+                map.removeLayer(tempMarker);
+                tempMarker = null;
+            }
 
             dadosComunidades.unshift(nova);
             localStorage.setItem('quilombos_v3', JSON.stringify(dadosComunidades));
